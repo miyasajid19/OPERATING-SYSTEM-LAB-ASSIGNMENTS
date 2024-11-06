@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
 
 using namespace std;
 
@@ -75,32 +74,54 @@ void bankersAlgorithm(const vector<int>& available, const vector<vector<int>>& m
 
 int main() {
     // Number of processes and resources
-    int P = 5;  // Number of processes
-    int R = 3;  // Number of resources
+    int P = 3;  // Number of processes
+    int R = 4;  // Number of resources
 
+    // Example 1: Safe state (safe sequence exists)
+    
+    cout << "Test Case 1: Safe State (Safe Sequence Exists)" << endl;
     // Available resources in the system
-    vector<int> available = {3, 3, 2};  // Available instances of each resource type
-
+    vector<int> available = {3, 3, 2, 2};  // Available instances of each resource type
+    
     // Maximum demand matrix (Maximum[i][j] is the max demand of process i for resource j)
     vector<vector<int>> maximum = {
-        {7, 5, 3},  // Process 0
-        {3, 2, 2},  // Process 1
-        {9, 0, 2},  // Process 2
-        {2, 2, 2},  // Process 3
-        {4, 3, 3},  // Process 4
+        {7, 5, 3, 2},  // Process 0
+        {3, 2, 2, 1},  // Process 1
+        {9, 0, 2, 3},  // Process 2
     };
-
+    
     // Allocation matrix (Allocation[i][j] is the number of instances of resource j allocated to process i)
     vector<vector<int>> allocation = {
-        {0, 1, 0},  // Process 0
-        {2, 0, 0},  // Process 1
-        {3, 0, 2},  // Process 2
-        {2, 1, 1},  // Process 3
-        {0, 0, 2},  // Process 4
+        {0, 1, 0, 2},  // Process 0
+        {2, 0, 0, 1},  // Process 1
+        {3, 0, 2, 2},  // Process 2
     };
-
-    // Run the Banker's Algorithm
+    
+    // Run the Banker's Algorithm for Safe State
     bankersAlgorithm(available, maximum, allocation);
-
+    
+    // Example 2: Unsafe state (no safe sequence exists)
+    
+    cout << "\nTest Case 2: Unsafe State (No Safe Sequence)" << endl;
+    // Available resources in the system
+    available = {3, 2, 2, 2};  // Available instances of each resource type
+    
+    // Maximum demand matrix (Maximum[i][j] is the max demand of process i for resource j)
+    maximum = {
+        {7, 5, 3, 2},  // Process 0
+        {3, 2, 2, 1},  // Process 1
+        {9, 0, 2, 3},  // Process 2
+    };
+    
+    // Allocation matrix (Allocation[i][j] is the number of instances of resource j allocated to process i)
+    allocation = {
+        {0, 1, 0, 2},  // Process 0
+        {2, 1, 1, 1},  // Process 1
+        {3, 0, 2, 2},  // Process 2
+    };
+    
+    // Run the Banker's Algorithm for Unsafe State
+    bankersAlgorithm(available, maximum, allocation);
+    
     return 0;
 }

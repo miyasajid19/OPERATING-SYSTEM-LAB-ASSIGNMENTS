@@ -52,3 +52,4 @@ int main()
     shm_unlink(SHM_NAME);
     return 0;
 }
+//this works  only in linux

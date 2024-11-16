@@ -2,7 +2,7 @@
 #include <vector>
 using namespace std;
 
-bool isSafeState(vector<vector<int>>& alloc, vector<vector<int>>& max, vector<vector<int>>& avail, int P, int R) {
+bool isSafeState(vector<vector<int>>& alloc, vector<vector<int>>& max, vector<vector<int>>& avail, int P, int R, vector<int>& safeSequence) {
     vector<int> work(R);
     vector<bool> finish(P, false);
     for (int i = 0; i < R; i++) {
@@ -29,6 +29,7 @@ bool isSafeState(vector<vector<int>>& alloc, vector<vector<int>>& max, vector<ve
                         work[j] += alloc[i][j];
                     }
                     finish[i] = true;
+                    safeSequence.push_back(i); // Add process i to the safe sequence
                     found = true;
                     count++;
                 }
@@ -67,8 +68,16 @@ int main() {
         cin >> avail[0][i];
     }
 
-    if (isSafeState(alloc, max, avail, P, R)) {
+    vector<int> safeSequence; // To store the safe sequence of processes
+
+    if (isSafeState(alloc, max, avail, P, R, safeSequence)) {
         cout << "System is in a safe state.\n";
+        cout << "Safe Sequence: ";
+        for (int i = 0; i < safeSequence.size(); i++) {
+            cout << "P" << safeSequence[i];
+            if (i != safeSequence.size() - 1) cout << " -> ";
+        }
+        cout << endl;
     } else {
         cout << "System is in a deadlock state.\n";
     }

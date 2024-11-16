@@ -1,22 +1,21 @@
 #include <iostream>
 #include <vector>
 #include <queue>
-#include <string>
 #include <algorithm> // for min function
 #include <climits>   // for INT_MAX
 using namespace std;
 
 class RoundRobin
 {
-    vector<int> processes;
-    vector<int> arrivalTime;
-    vector<int> BurstTime;
-    vector<int> RemainingTime;
-    vector<int> ComplectionTime;
-    vector<int> TurnAroundTime;
-    vector<int> WaitingTime;
-    vector<string> Queue;
-    int timeQuantum;
+    vector<int> processes;      // Process IDs
+    vector<int> arrivalTime;    // Arrival times
+    vector<int> burstTime;      // Burst times
+    vector<int> remainingTime;  // Remaining burst times
+    vector<int> waitingTime;    // Waiting times
+    vector<int> turnaroundTime; // Turnaround times
+    vector<int> completionTime; // Completion times
+    vector<int> executionOrder; // Order in which processes were executed
+    int timeQuantum;            // Time quantum for Round Robin
 
 public:
     RoundRobin(int TQ)
@@ -24,136 +23,154 @@ public:
         this->timeQuantum = TQ;
     }
 
+    // Add a process with its ID, arrival time, and burst time
     void addProcess(int pid, int At, int BT)
     {
-        this->processes.push_back(pid);
-        this->arrivalTime.push_back(At);
-        this->BurstTime.push_back(BT);
-        this->RemainingTime.push_back(BT);  // Initialize remaining time as burst time
-        this->ComplectionTime.push_back(0);
-        this->TurnAroundTime.push_back(0);
-        this->WaitingTime.push_back(0);
+        processes.push_back(pid);
+        arrivalTime.push_back(At);
+        burstTime.push_back(BT);
+        remainingTime.push_back(BT);  // Initialize remaining time as burst time
+        completionTime.push_back(0);
+        turnaroundTime.push_back(0);
+        waitingTime.push_back(0);
     }
 
-    void Turn_Around_Time()
+    // Function to calculate waiting time for all processes
+    void findWaitingTime()
     {
-        // Calculate turnaround time after completion times are available
-        for (int i = 0; i < processes.size(); i++)
-            TurnAroundTime[i] = ComplectionTime[i] - arrivalTime[i];
-    }
-
-    void Waiting_Time()
-    {
-        // Waiting time is turnaround time minus burst time
-        for (int i = 0; i < processes.size(); i++)
-            WaitingTime[i] = TurnAroundTime[i] - BurstTime[i];
-    }
-
-    void Completion_Time()
-    {
-        vector<int> Remainingtime = RemainingTime;
-        int currentTime = 0;
         int n = processes.size();
-        queue<int> readyQueue;
-        vector<bool> isInQueue(n, false); // Track if a process is in the queue
-
-        while (true)
+        vector<int> rem_bt = remainingTime;  // Copy of remaining burst times
+        int t = 0;  // Current time
+        while (1)
         {
-            bool addedProcess = false;
-            // Add processes that have arrived to the ready queue
+            bool done = true;
+
+            // Traverse all processes one by one repeatedly
             for (int i = 0; i < n; i++)
             {
-                if (arrivalTime[i] <= currentTime && Remainingtime[i] > 0 && !isInQueue[i])
+                // If burst time of a process is greater than 0, then only need to process further
+                if (rem_bt[i] > 0)
                 {
-                    readyQueue.push(i);
-                    isInQueue[i] = true;
-                    addedProcess = true;
-                }
-            }
+                    done = false; // There is a pending process
 
-            // If no processes are in the ready queue, and no new processes are added, break
-            if (readyQueue.empty() && !addedProcess)
-            {
-                // Find the smallest arrival time among remaining processes that have not finished
-                int nextArrival = INT_MAX;
-                for (int i = 0; i < n; i++)
-                {
-                    if (Remainingtime[i] > 0 && arrivalTime[i] > currentTime)
+                    if (rem_bt[i] > timeQuantum)
                     {
-                        nextArrival = min(nextArrival, arrivalTime[i]);
+                        t += timeQuantum;  // Increase the time by quantum
+                        rem_bt[i] -= timeQuantum;
+                    }
+                    else
+                    {
+                        // Process completes
+                        t = t + rem_bt[i];
+                        waitingTime[i] = t - burstTime[i];  // Waiting time = current time - burst time
+                        rem_bt[i] = 0;  // Process is fully executed
                     }
                 }
-
-                // If no more processes are arriving, break out of the loop
-                if (nextArrival == INT_MAX)
-                    break;
-
-                currentTime = nextArrival;
-                continue;
             }
 
-            // Process the first item in the queue
-            if (!readyQueue.empty())
-            {
-                int i = readyQueue.front();
-                readyQueue.pop();
-
-                // Execute the process for time quantum or until it finishes
-                if (Remainingtime[i] > timeQuantum)
-                {
-                    currentTime += timeQuantum;
-                    Remainingtime[i] -= timeQuantum;
-                    Queue.push_back("Process " + to_string(processes[i]));
-
-                    // Re-queue if not finished
-                    readyQueue.push(i);
-                }
-                else
-                {
-                    // Process completes
-                    currentTime += Remainingtime[i];
-                    ComplectionTime[i] = currentTime;
-                    Remainingtime[i] = 0;
-                    Queue.push_back("Process " + to_string(processes[i]));
-                }
-            }
-
-            // Check if all processes are finished
-            if (all_of(Remainingtime.begin(), Remainingtime.end(), [](int x)
-                       { return x == 0; }))
+            // If all processes are done, break the loop
+            if (done)
                 break;
         }
     }
 
+    // Function to calculate turnaround time for all processes
+    void findTurnaroundTime()
+    {
+        int n = processes.size();
+        for (int i = 0; i < n; i++)
+            turnaroundTime[i] = burstTime[i] + waitingTime[i];  // TAT = WT + BT
+    }
+
+    // Function to calculate completion time for all processes
+    void findCompletionTime()
+    {
+        int n = processes.size();
+        int t = 0;  // Current time
+        vector<int> rem_bt = remainingTime;
+
+        while (1)
+        {
+            bool done = true;
+            for (int i = 0; i < n; i++)
+            {
+                if (rem_bt[i] > 0)
+                {
+                    done = false;
+
+                    if (rem_bt[i] > timeQuantum)
+                    {
+                        t += timeQuantum;
+                        rem_bt[i] -= timeQuantum;
+                    }
+                    else
+                    {
+                        t += rem_bt[i];
+                        completionTime[i] = t;
+                        rem_bt[i] = 0;
+                    }
+                }
+            }
+
+            if (done)
+                break;
+        }
+    }
+
+    // Function to display the results
     void display()
     {
+        int n = processes.size();
         cout << "PID\tArrival\tBurst\tCompletion\tTurnaround\tWaiting\n";
-        for (int i = 0; i < processes.size(); i++)
+        for (int i = 0; i < n; i++)
         {
-            cout << processes[i] << "\t" << arrivalTime[i] << "\t" << BurstTime[i] << "\t"
-                 << ComplectionTime[i] << "\t\t" << TurnAroundTime[i] << "\t\t" << WaitingTime[i] << endl;
+            cout << processes[i] << "\t" << arrivalTime[i] << "\t" << burstTime[i] << "\t"
+                 << completionTime[i] << "\t\t" << turnaroundTime[i] << "\t\t" << waitingTime[i] << endl;
         }
-        cout << "Sequence:\n";
-        for (auto x : Queue)
-            cout << x << "\t";
+
+        // Display execution order (queue of process execution)
+        cout << "Execution Order: ";
+        for (auto pid : executionOrder)
+            cout << pid << " ";
         cout << endl;
+    }
+
+    // Function to calculate and display average times
+    void calculateAvgTime()
+    {
+        int n = processes.size();
+        int totalWT = 0, totalTAT = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            totalWT += waitingTime[i];
+            totalTAT += turnaroundTime[i];
+        }
+
+        cout << "Average Waiting Time = " << (float)totalWT / n << endl;
+        cout << "Average Turnaround Time = " << (float)totalTAT / n << endl;
+    }
+
+    // Main function to execute the scheduling
+    void executeRoundRobin()
+    {
+        findCompletionTime();  // Calculate the completion times
+        findWaitingTime();     // Calculate the waiting times
+        findTurnaroundTime();  // Calculate the turnaround times
+        display();             // Display process info
+        calculateAvgTime();    // Display average times
     }
 };
 
+// Driver code
 int main()
 {
-    RoundRobin RR(3); // Set time quantum to 2
-    RR.addProcess(1, 1, 2);  // PID 1, Arrival Time 1, Burst Time 2
-    RR.addProcess(2, 4, 2); // PID 2, Arrival Time 41, Burst Time 2
-    RR.addProcess(3, 3, 2); // PID 3, Arrival Time 31, Burst Time 2
-    RR.addProcess(4, 2, 12);// PID 4, Arrival Time 12, Burst Time 12
-    RR.addProcess(5, 1, 1);  // PID 5, Arrival Time 1, Burst Time 1
-    RR.addProcess(6, 0, 10); // PID 6, Arrival Time 0, Burst Time 10
+    RoundRobin rr(2); // Time quantum = 2
+    rr.addProcess(1, 0, 10);  // PID 1, Arrival Time 0, Burst Time 10
+    rr.addProcess(2, 1, 5);   // PID 2, Arrival Time 1, Burst Time 5
+    rr.addProcess(3, 2, 8);   // PID 3, Arrival Time 2, Burst Time 8
 
-    RR.Completion_Time();    // Calculate completion time
-    RR.Turn_Around_Time();   // Calculate turnaround time
-    RR.Waiting_Time();       // Calculate waiting time
-    RR.display();            // Display results
+    rr.executeRoundRobin();  // Execute the Round Robin scheduling
 
-    return EXIT_SUCCESS;
+    return 0;
 }

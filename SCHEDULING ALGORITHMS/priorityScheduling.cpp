@@ -1,105 +1,140 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <queue>
-#include <tuple>
-
+#include <climits> // for INT_MAX
+#include <algorithm> // for sort
 using namespace std;
 
-// Structure to represent a Process
-struct Process {
-    int id;           // Process ID
-    int burstTime;    // CPU Burst time (time required to finish the process)
-    int priority;     // Priority of the process (lower value means higher priority)
-    int arrivalTime;  // Arrival time of the process
-    int startTime;    // Time when the process starts executing
-    int completionTime; // Time when the process finishes execution
-    int waitingTime;  // Waiting time for the process
-    int turnAroundTime; // Turnaround time for the process
+class PriorityScheduling
+{
+    static int count; // static counter to give each process a unique ID
+    vector<int> processId;
+    vector<int> arrivalTime;
+    vector<int> burstTime;
+    vector<int> priority;
+    vector<int> remainingTime;
+    vector<int> completionTime;
+    vector<int> turnAroundTime;
+    vector<int> waitingTime;
+    queue<int> executionQueue; // Queue to store execution order
+
+public:
+    // Constructor to initialize the priority scheduling algorithm
+    PriorityScheduling()
+    {
+        // No time quantum needed for priority scheduling
+    }
+
+    // Add a new process to the system
+    void add(int AT, int BT, int P)
+    {
+        this->processId.push_back(count++);
+        this->arrivalTime.push_back(AT);
+        this->burstTime.push_back(BT);
+        this->priority.push_back(P);
+        this->remainingTime.push_back(BT); // Initially, remaining time = burst time
+    }
+
+    // Function to compute the scheduling
+    void compute()
+    {
+        int n = processId.size();
+        remainingTime = burstTime; // Copy of remaining burst times
+        completionTime.resize(n);
+        turnAroundTime.resize(n);
+        waitingTime.resize(n);
+        int currentTime = 0; // Start from time 0
+        int completed = 0;   // Track completed processes
+
+        // Vector of processes to sort by arrival time and priority
+        vector<int> readyQueue; // To store the indices of ready processes
+        while (completed != n)
+        {
+            // Add processes that have arrived by currentTime to the ready queue
+            readyQueue.clear();
+            for (int i = 0; i < n; i++)
+            {
+                if (arrivalTime[i] <= currentTime && remainingTime[i] > 0)
+                {
+                    readyQueue.push_back(i);
+                }
+            }
+
+            // Sort readyQueue based on priority (ascending order) and arrival time (ascending order)
+            sort(readyQueue.begin(), readyQueue.end(), [&](int a, int b) {
+                if (priority[a] == priority[b])
+                    return arrivalTime[a] < arrivalTime[b];
+                return priority[a] < priority[b];
+            });
+
+            if (!readyQueue.empty())
+            {
+                // Select the process with the highest priority (lowest priority value)
+                int processIndex = readyQueue[0];
+                currentTime += remainingTime[processIndex];
+                completionTime[processIndex] = currentTime;
+                turnAroundTime[processIndex] = completionTime[processIndex] - arrivalTime[processIndex];
+                waitingTime[processIndex] = turnAroundTime[processIndex] - burstTime[processIndex];
+                remainingTime[processIndex] = 0; // Process completed
+                completed++; // Increment completed processes
+                executionQueue.push(processId[processIndex]);
+            }
+            else
+            {
+                // If no process is ready, increment time
+                currentTime++;
+            }
+        }
+    }
+
+    // Function to print the results
+    void printPriorityScheduling()
+    {
+        cout << "Process ID\tArrival Time\tBurst Time\tPriority\tCompletion Time\tWaiting Time\tTurnaround Time\n";
+        double totalWaitingTime = 0;
+        double totalTurnaroundTime = 0;
+
+        // Print the detailed information for each process
+        for (int i = 0; i < processId.size(); i++)
+        {
+            totalWaitingTime += waitingTime[i];
+            totalTurnaroundTime += turnAroundTime[i];
+            cout << processId[i] << "\t\t" << arrivalTime[i] << "\t\t" << burstTime[i] << "\t\t"
+                 << priority[i] << "\t\t" << completionTime[i] << "\t\t" << waitingTime[i] << "\t\t" << turnAroundTime[i] << endl;
+        }
+
+        // Print the sequence of execution (queue)
+        cout << "\nExecution Sequence (Process IDs): ";
+        while (!executionQueue.empty())
+        {
+            cout << executionQueue.front() << " ";
+            executionQueue.pop();
+        }
+        cout << endl;
+
+        // Print the average waiting time and turnaround time
+        cout << "\nAverage Waiting Time: " << totalWaitingTime / processId.size() << endl;
+        cout << "Average Turnaround Time: " << totalTurnaroundTime / processId.size() << endl;
+    }
 };
 
-// Comparison function for sorting processes based on arrival time and priority
-bool compareArrivalTime(Process a, Process b) {
-    if (a.arrivalTime == b.arrivalTime)
-        return a.priority < b.priority;
-    return a.arrivalTime < b.arrivalTime;
-}
+// Initialize static count variable
+int PriorityScheduling::count = 1;
 
-// Function to calculate waiting time and turn around time
-void calculateTimes(vector<Process>& processes) {
-    int totalTime = 0;  // Keep track of total elapsed time
-    for (int i = 0; i < processes.size(); i++) {
-        Process &p = processes[i];
-        
-        // Start time is either when the process arrives or after previous process finishes
-        if (totalTime < p.arrivalTime) {
-            totalTime = p.arrivalTime;
-        }
-        p.startTime = totalTime;
-        p.completionTime = p.startTime + p.burstTime;
-        p.turnAroundTime = p.completionTime - p.arrivalTime;
-        p.waitingTime = p.turnAroundTime - p.burstTime;
+int main()
+{
+    PriorityScheduling ps;
 
-        totalTime = p.completionTime;  // Update the current time
-    }
-}
+    // Adding processes to the system
+    ps.add(0, 7, 2);   // Process 1, Arrival time = 0, Burst time = 7, Priority = 2
+    ps.add(0, 30, 1); // Process 2, Arrival time = 10, Burst time = 30, Priority = 1
+    ps.add(20, 13, 3); // Process 3, Arrival time = 20, Burst time = 13, Priority = 3
 
-// Priority Scheduling (Non-Preemptive)
-void priorityScheduling(vector<Process>& processes) {
-    // Sort processes by arrival time, and if they arrive at the same time, by priority
-    sort(processes.begin(), processes.end(), compareArrivalTime);
+    // Perform Priority Scheduling computation
+    ps.compute();
 
-    // Calculate the completion time, turn-around time, and waiting time for each process
-    calculateTimes(processes);
-
-    // Output the results
-    cout << "\nProcess ID | Arrival Time | Burst Time | Priority | Start Time | Completion Time | Waiting Time | Turnaround Time\n";
-    cout << "-------------------------------------------------------------------------------------------\n";
-    for (const auto& p : processes) {
-        cout << p.id << "\t\t" 
-             << p.arrivalTime << "\t\t"
-             << p.burstTime << "\t\t"
-             << p.priority << "\t\t"
-             << p.startTime << "\t\t"
-             << p.completionTime << "\t\t"
-             << p.waitingTime << "\t\t"
-             << p.turnAroundTime << "\n";
-    }
-
-    // Calculate averages
-    double avgWaitingTime = 0, avgTurnaroundTime = 0;
-    for (const auto& p : processes) {
-        avgWaitingTime += p.waitingTime;
-        avgTurnaroundTime += p.turnAroundTime;
-    }
-    avgWaitingTime /= processes.size();
-    avgTurnaroundTime /= processes.size();
-
-    cout << "\nAverage Waiting Time: " << avgWaitingTime;
-    cout << "\nAverage Turnaround Time: " << avgTurnaroundTime << endl;
-}
-
-int main() {
-    int n;  // Number of processes
-    cout << "Enter number of processes: ";
-    cin >> n;
-
-    vector<Process> processes(n);
-
-    // Input for processes
-    for (int i = 0; i < n; i++) {
-        cout << "Enter details for process " << i + 1 << "\n";
-        processes[i].id = i + 1;
-        cout << "Arrival Time: ";
-        cin >> processes[i].arrivalTime;
-        cout << "Burst Time: ";
-        cin >> processes[i].burstTime;
-        cout << "Priority: ";
-        cin >> processes[i].priority;
-    }
-
-    // Perform priority scheduling
-    priorityScheduling(processes);
+    // Print the result of Priority scheduling
+    ps.printPriorityScheduling();
 
     return 0;
 }

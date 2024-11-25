@@ -2,7 +2,8 @@
 #include <vector>
 using namespace std;
 
-class BankersAlgorithm {
+class BankersAlgorithm
+{
     static int count;
     vector<int> processid;
     vector<vector<int>> maxRequired;
@@ -12,23 +13,28 @@ class BankersAlgorithm {
     int no_of_resources;
 
 public:
-    BankersAlgorithm(int no_of_resources, vector<int> available) {
+    BankersAlgorithm(int no_of_resources, vector<int> available)
+    {
         this->no_of_resources = no_of_resources;
         this->available = available;
     }
 
-    void allocate(vector<int> maxRequired, vector<int> allocated) {
+    void allocate(vector<int> maxRequired, vector<int> allocated)
+    {
         processid.push_back(count++);
         this->allocated.push_back(allocated);
         this->maxRequired.push_back(maxRequired);
     }
 
-    vector<int> safeSequence() {
+    vector<int> safeSequence()
+    {
         // Calculate the need matrix
         need.clear();
-        for (int i = 0; i < processid.size(); i++) {
+        for (int i = 0; i < processid.size(); i++)
+        {
             vector<int> temp;
-            for (int j = 0; j < no_of_resources; j++) {
+            for (int j = 0; j < no_of_resources; j++)
+            {
                 temp.push_back(maxRequired[i][j] - allocated[i][j]);
             }
             need.push_back(temp);
@@ -40,23 +46,30 @@ public:
 
         int completed = 0;
 
-        while (completed < processid.size()) {
+        while (completed < processid.size())
+        {
             bool found = false;
 
-            for (int i = 0; i < processid.size(); i++) {
-                if (!finished[i]) {
+            for (int i = 0; i < processid.size(); i++)
+            {
+                if (!finished[i])
+                {
                     bool canAllocate = true;
 
-                    for (int j = 0; j < no_of_resources; j++) {
-                        if (need[i][j] > work[j]) {
+                    for (int j = 0; j < no_of_resources; j++)
+                    {
+                        if (need[i][j] > work[j])
+                        {
                             canAllocate = false;
                             break;
                         }
                     }
 
-                    if (canAllocate) {
+                    if (canAllocate)
+                    {
                         // Allocate resources
-                        for (int j = 0; j < no_of_resources; j++) {
+                        for (int j = 0; j < no_of_resources; j++)
+                        {
                             work[j] += allocated[i][j];
                         }
                         ans.push_back(processid[i]);
@@ -67,7 +80,8 @@ public:
                 }
             }
 
-            if (!found) {
+            if (!found)
+            {
                 // System is in an unsafe state
                 return {};
             }
@@ -79,11 +93,12 @@ public:
 
 int BankersAlgorithm::count = 1;
 
-int main() {
+int main()
+{
     // Example Input
     int no_of_resources = 3;
     vector<int> available = {3, 3, 2};
-    
+
     BankersAlgorithm bankers(no_of_resources, available);
 
     // Define processes with maxRequired and allocated resources
@@ -95,13 +110,17 @@ int main() {
 
     vector<int> safeSequence = bankers.safeSequence();
 
-    if (!safeSequence.empty()) {
+    if (!safeSequence.empty())
+    {
         cout << "Safe Sequence: ";
-        for (int id : safeSequence) {
+        for (int id : safeSequence)
+        {
             cout << "P" << id << " ";
         }
         cout << endl;
-    } else {
+    }
+    else
+    {
         cout << "The system is in an unsafe state!" << endl;
     }
 

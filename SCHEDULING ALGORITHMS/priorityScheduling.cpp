@@ -26,7 +26,6 @@ public:
         this->arrivalTime.push_back(AT);
         this->burstTime.push_back(BT);
         this->priority.push_back(P);
-        this->remainingTime.push_back(BT); // Initially, remaining time = burst time
     }
 
     // Function to compute the scheduling
@@ -41,6 +40,7 @@ public:
         int completed = 0;   // Track completed processes
 
         // Min-heap to store processes based on priority (higher priority first)
+        // lambda function
         auto compare = [&](int a, int b)
         {
             if (priority[a] == priority[b])

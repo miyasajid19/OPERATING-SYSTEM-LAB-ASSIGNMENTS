@@ -30,9 +30,9 @@ public:
     {
         int n = processId.size();
         vector<int> remainingBurstTime = burstTime;
-        completionTime.resize(n);
-        waitingTime.resize(n);
-        turnAroundTime.resize(n);
+        completionTime.resize(n,0);
+        waitingTime.resize(n,0);
+        turnAroundTime.resize(n,0);
         int completed = 0;
         int currentTime = 0;
         while (completed != n)

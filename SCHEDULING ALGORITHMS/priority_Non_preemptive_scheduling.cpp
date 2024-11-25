@@ -19,12 +19,6 @@ class PriorityScheduling
     vector<int> waitingTime;
 
 public:
-    // Constructor to initialize the priority scheduling algorithm
-    PriorityScheduling()
-    {
-        // No time quantum needed for priority scheduling
-    }
-
     // Add a new process to the system
     void add(int AT, int BT, int P)
     {
@@ -57,7 +51,7 @@ public:
         };
 
         priority_queue<int, vector<int>, decltype(compare)> readyQueue(compare);
-        set<int> addedToQueue;  // Set to track which processes are in the queue
+        set<int> addedToQueue; // Set to track which processes are in the queue
 
         while (completed != n)
         {

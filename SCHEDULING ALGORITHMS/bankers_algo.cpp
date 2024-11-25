@@ -1,93 +1,95 @@
-#include<iostream>
-#include<vector>
-#include<queue>
+#include <iostream>
+#include <vector>
+#include <queue>
 using namespace std;
-class bankers_algorithm{
-  vector<int>processes;
-  vector<vector<int>>maxResources;
-  vector<vector<int>>Allocated;
-  vector<vector<int>>Needed;
-  vector<int>Available;
-  queue<int> safeSequece;
-  int No_of_resources;
-  static int count;
-  public:
-  bankers_algorithm(int no_of_resources, vector<int>available)
-  {
-      this->No_of_resources=no_of_resources;
-      this->Available=available;
-  }
-  void allocate(vector<int>MaxRequired,vector<int>Allocated)
-  {
-      count++;
-      this->processes.push_back(count);
-      this->maxResources.push_back(MaxRequired);
-      this->Allocated.push_back(Allocated);
-  }
-  void checkSafety()
-  {
-      //calculating need matrix
-      for (int i=0;i<count;i++)
-      {
-          vector<int>temp;
-          for(int j=0;j<No_of_resources;j++)
-          {
-              temp.push_back(maxResources[i][j]-Allocated[i][j]);
-          }
-          Needed.push_back(temp);
-      }
-      //working vector
-      vector<int>work=Available;
-      //book mark for the completion of the process
-      vector<bool>finished(count-1,false);
-      int completed=0;
-      while(completed<count)
-      {
-          bool found=false;
-          for (int i=0;i<count;i++)
-          {
-              if(not finished[i])
-              {
-                  bool canAllocate=true;
-                  for (int j=0;j<No_of_resources;j++)
-                  {
-                     if(Needed[i][j]>Available[j]){
-                         canAllocate=false;
-                         break;
-                     }
-                  }
-                  if(canAllocate)
-                  {
-                      for (int j=0;j<No_of_resources;j++)
-                      {
-                          Available[i]+=Needed[i][j];}
-                          completed++;
-                          finished[i]=true;
-                          found=true;
-                          safeSequece.push(processes[i]);
-                      }
-                  }
-              
-          }
-          if(not found)
-          {
-          cout<<"Not in safe sequence"<<endl;
-          break;
-          }
-      }
-     cout<<" is in safe sequence"<<endl;
-     while(not safeSequece.empty())
-     {
-         cout<< safeSequece.front()<<"\t";
-         safeSequece.pop();
-     }
-     cout<<endl;
-  }
+
+class bankers_algorithm {
+    vector<int> processes;
+    vector<vector<int>> maxResources;
+    vector<vector<int>> Allocated;
+    vector<vector<int>> Needed;
+    vector<int> Available;
+    queue<int> safeSequence;
+    int No_of_resources;
+    static int count;
+
+public:
+    bankers_algorithm(int no_of_resources, vector<int> available) {
+        this->No_of_resources = no_of_resources;
+        this->Available = available;
+    }
+
+    void allocate(vector<int> MaxRequired, vector<int> Allocated) {
+        count++;
+        this->processes.push_back(count);
+        this->maxResources.push_back(MaxRequired);
+        this->Allocated.push_back(Allocated);
+    }
+
+    void checkSafety() {
+        // Clear the Needed matrix before recalculating it
+        Needed.clear();
+
+        // Calculate the Need matrix
+        for (int i = 0; i < count; i++) {
+            vector<int> temp;
+            for (int j = 0; j < No_of_resources; j++) {
+                temp.push_back(maxResources[i][j] - Allocated[i][j]);
+            }
+            Needed.push_back(temp);
+        }
+
+        // Working vector (Available resources)
+        vector<int> work = Available;
+
+        // Bookmark for the completion of the processes
+        vector<bool> finished(count, false);
+        int completed = 0;
+
+        while (completed < count) {
+            bool found = false;
+            for (int i = 0; i < count; i++) {
+                if (!finished[i]) {
+                    bool canAllocate = true;
+                    for (int j = 0; j < No_of_resources; j++) {
+                        if (Needed[i][j] > work[j]) {
+                            canAllocate = false;
+                            break;
+                        }
+                    }
+
+                    if (canAllocate) {
+                        // Allocate resources and update available resources
+                        for (int j = 0; j < No_of_resources; j++) {
+                            work[j] += Allocated[i][j];
+                        }
+                        completed++;
+                        finished[i] = true;
+                        found = true;
+                        safeSequence.push(processes[i]);
+                    }
+                }
+            }
+
+            if (!found) {
+                cout << "Not in safe sequence" << endl;
+                return;
+            }
+        }
+
+        cout << "Safe sequence is: ";
+        while (!safeSequence.empty()) {
+            cout << safeSequence.front() << "\t";
+            safeSequence.pop();
+        }
+        cout << endl;
+    }
 };
-int bankers_algorithm :: count=0;
-int main()
-{
-     // Example Input
+
+int bankers_algorithm::count = 0;
+
+int main() {
+    // Example Input
     int no_of_resources = 3;
     vector<int> available = {3, 3, 2};
 
@@ -102,10 +104,5 @@ int main()
 
     bankers.checkSafety();
 
-    return EXIT_SUCCESS;
-
-
-    
-    
-    
+    return 0;
 }

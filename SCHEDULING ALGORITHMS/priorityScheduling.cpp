@@ -75,7 +75,7 @@ public:
                 if (remainingTime[processIndex] > 0 && priority[processIndex] > priority[readyQueue.top()])
                 {
                     // Preempt the current process
-                    readyQueue.push(processIndex);  // Re-insert the current process back into the queue
+                    readyQueue.push(processIndex); // Re-insert the current process back into the queue
                     cout << "Process " << processId[processIndex] << " preempted." << endl;
                     continue; // Immediately pick the new highest priority process
                 }
@@ -90,8 +90,10 @@ public:
                     waitingTime[processIndex] = turnAroundTime[processIndex] - burstTime[processIndex];
                     remainingTime[processIndex] = 0; // Process completed
                     completed++;
-                }else{
-                    cout<<"preempted"<<endl;
+                }
+                else
+                {
+                    cout << "preempted" << endl;
                     readyQueue.push(processIndex);
                 }
             }
@@ -132,11 +134,11 @@ int main()
 {
     PriorityScheduling ps;
     // Adding processes to the system
-ps.add(0,3,3);
-ps.add(1,4,2);
-ps.add(2,6,4);
-ps.add(3,4,6);
-ps.add(5,2,10);
+    ps.add(0, 3, 3);
+    ps.add(1, 4, 2);
+    ps.add(2, 6, 4);
+    ps.add(3, 4, 6);
+    ps.add(5, 2, 10);
 
     // Perform Priority Scheduling computation
     ps.compute();

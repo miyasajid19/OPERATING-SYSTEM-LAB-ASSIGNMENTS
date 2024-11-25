@@ -26,7 +26,6 @@ public:
         this->arrivalTime.push_back(AT);
         this->burstTime.push_back(BT);
         this->priority.push_back(P);
-        this->remainingTime.push_back(BT); // Initially, remaining time = burst time
     }
 
     // Function to compute the scheduling

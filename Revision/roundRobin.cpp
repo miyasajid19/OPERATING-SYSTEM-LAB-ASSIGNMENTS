@@ -35,7 +35,6 @@ public:
         completionTime.resize(n, 0);
         turnAroundTime.resize(n, 0);
         int completed = 0;
-        vector<bool> iscompleted(n, false);
         int currentTime = 0;
         while (completed != n)
         {

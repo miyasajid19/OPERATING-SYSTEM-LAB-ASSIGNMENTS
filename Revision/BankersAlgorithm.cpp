@@ -41,19 +41,19 @@ public:
         }
         vector<bool> isFinished(n, false);
         int alloted = 0;
-        vector<int> work = available;  // Set work as available resources initially
+        vector<vector<int>> work = need;
         vector<int> ans;
         while (alloted < n)
         {
             bool found = false;
             for (int i = 0; i < n; i++)
             {
-                if (!isFinished[i])
+                if (not isFinished[i])
                 {
                     bool canallocate = true;
                     for (int j = 0; j < no_of_resources; j++)
                     {
-                        if (need[i][j] > work[j])  // Check if the process can be allocated resources
+                        if (work[i][j] > available[j])
                         {
                             canallocate = false;
                             break;
@@ -64,17 +64,17 @@ public:
                         isFinished[i] = true;
                         for (int j = 0; j < no_of_resources; j++)
                         {
-                            work[j] += allocated[i][j];  // Update work with allocated resources
+                            available[j] += allocated[i][j];
                         }
                         ans.push_back(processid[i]);
-                        alloted++;  // Increment the number of processes allocated
-                        found = true;
+                        alloted++;
+                        found=true;
                     }
                 }
             }
-            if (!found)
+            if (not found)
             {
-                return {};  // If no process could be allocated, the system is in an unsafe state
+                return {};
             }
         }
         return ans;
